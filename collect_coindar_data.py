@@ -30,6 +30,8 @@ def download_and_clust(url,csv_file,n_clust):
 
     tfidf_matrix = tfidf_vectorizer.fit_transform(events) #fit the vectorizer to synopses
     print('Shape is ',tfidf_matrix.shape)
+    if n_clust==0:
+        n_clust = tfidf_matrix.shape[1]
     km = KMeans(n_clusters=n_clust)
     km.fit(tfidf_matrix)
     df['cluster'] = km.labels_.tolist()
@@ -46,7 +48,7 @@ out_dir = 'data'
 
 #if os.path.isfile(coindar_csv_file) is not True:
 print('download and clust data')
-download_and_clust(url,coindar_csv_file,8)
+download_and_clust(url,coindar_csv_file,0)
 print('DONE')
 
 event_df = pd.read_csv(coindar_csv_file)
@@ -55,6 +57,7 @@ result = pd.merge(event_df, coins_df, how='inner', on=['coin_name','coin_symbol'
 #result = pd.merge(event_df, coins_df, how='inner', on=['coin_symbol'])
 result = result.drop(result.columns[[0]],axis=1)
 grouped = result.groupby('coin_id')
+print("KMeans results:\n",result.cluster.value_counts(normalize=True))
 print(len(grouped)," coins were found in the CoinDar events")
 for name, group in grouped:
     group = group.reset_index(drop=True)
@@ -64,6 +67,7 @@ for name, group in grouped:
     group = group.sort_values(by='start_date')
     group = group.reset_index(drop=True)
     to_csv(group, out_dir + '/' + name + '.coindar.csv')
+
 
 if os.path.isfile(coindar_csv_file) is not True:
     os.remove(coindar_csv_file)
