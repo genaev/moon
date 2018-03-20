@@ -8,7 +8,7 @@ import os.path
 
 # set the delay between requests
 wait_time = 2
-data_file = 'data.csv'
+#data_file = 'data.csv'
 out_dir = "data"
 
 def to_csv(data,csv_file):
@@ -18,6 +18,7 @@ def to_csv(data,csv_file):
 
 def download_by_coin(coin,out_dir,rewrite):
     l = SocialLinks("https://coinmarketcap.com/currencies/"+coin+"/")
+      
     print(coin," reddit",l.reddit, " twitter",l.twitter)
     # reddit data downloading
     if l.reddit != None:
@@ -27,7 +28,10 @@ def download_by_coin(coin,out_dir,rewrite):
     # twitter data downloading
     if l.twitter != None:
         if (os.path.isfile(out_dir + '/' + coin + '.twitter.csv') is not True or rewrite is True):
-            tw = TwitterData(l.twitter)
+            tw_user = l.twitter
+            if coin == "ethereum":
+                tw_user = "ethereum"
+            tw = TwitterData(tw_user)
             to_csv(tw.get, out_dir + '/' + coin + '.twitter.csv')
 
 # download data for several coin
