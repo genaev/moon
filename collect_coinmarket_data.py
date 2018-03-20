@@ -2,6 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 import pandas as pd
 from time import sleep
+import datetime
 from CoinMarketCap.CoinsList import CoinsList
 
 url = 'https://coinmarketcap.com/all/views/all/'
@@ -29,9 +30,11 @@ def main(url, name, csv_file):
 
 i = 0
 for coin in CoinsList().get['coin_id'].tolist():
+    now = datetime.datetime.now()
+    date = now.year + now.month + now.day
     i += 1
     print (i, coin)
-    main('https://coinmarketcap.com/currencies/' + coin + '/historical-data/?start=20100101&end=20180305',
+    main('https://coinmarketcap.com/currencies/' + coin + '/historical-data/?start=20100101&end=' + date,
          coin,
          out_dir + '/' + coin + '.market.csv')
     sleep(wait_time)
