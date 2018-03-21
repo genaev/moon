@@ -27,8 +27,61 @@ r = 30
 #f.close()
 #cur_names = CoinsList().get['coin_id'].tolist()
 
-log_norm = False
-norm_in_block = False
+norm_all = True
+norm_block = False
+
+skip_colums = ['marketcap_altcoin_index_market_cap_by_available_supply',
+               'marketcap_altcoin_index_volume_usd',
+               'd_index_bitcoin-cash',
+               'd_index_dash',
+               'd_index_ethereum',
+               'd_index_monero',
+               'd_index_nem',
+               'd_index_neo'
+]
+
+norm_block_params = {('open', 'high', 'low', 'close'): '',
+                     'volume': '',
+                     'market cap': '',
+                     'marketcap_total_index_market_cap_by_available_supply': '',
+                     'marketcap_total_index_volume_usd': '',
+                     'marketcap_altcoin_index_market_cap_by_available_supply': '',
+                     'marketcap_altcoin_index_volume_usd': '',
+                     'd_index_bitcoin': '',
+                     'd_index_bitcoin-cash': '',
+                     'd_index_dash': '',
+                     'd_index_ethereum': '',
+                     'd_index_iota': '',
+                     'd_index_litecoin': '',
+                     'd_index_monero': '',
+                     'd_index_nem': '',
+                     'd_index_neo': '',
+                     'd_index_others': '',
+                     'd_index_ripple': '',
+                     'reddit': '',
+                     'twitter': ''}
+
+norm_all_params = {('open', 'high', 'low', 'close'): 'log',
+                   'volume': 'log',
+                   'market cap': 'log',
+                   'marketcap_total_index_market_cap_by_available_supply': '',
+                   'marketcap_total_index_volume_usd': '',
+                   'marketcap_altcoin_index_market_cap_by_available_supply': '',
+                   'marketcap_altcoin_index_volume_usd': '',
+                   'd_index_bitcoin': '',
+                   'd_index_bitcoin-cash': '',
+                   'd_index_dash': '',
+                   'd_index_ethereum': '',
+                   'd_index_iota': '',
+                   'd_index_litecoin': '',
+                   'd_index_monero': '',
+                   'd_index_nem': '',
+                   'd_index_neo': '',
+                   'd_index_others': '',
+                   'd_index_ripple': '',
+                   'reddit': 'log',
+                   'twitter': 'log'}
+
 interpolate_params ={'date': 0,
                      'open': 1,
                      'high': 1,
@@ -65,16 +118,23 @@ def nan_filling(df):
         df[i] = df[i].interpolate(limit=interpolate_params[i])
 
 
-def norm_block(df):
-    price = ['open', 'high', 'low', 'close']
-    df[price] = StandardScaler().fit_transform(market[price])
-    df['volume'] = StandardScaler().fit_transform(market['volume'])
-    df['market cap'] = StandardScaler().fit_transform(market['market cap'])
+def f_norm(df, norm_type):
+    if norm_type == 'log':
+        return np.log(df)
+    elif norm_type == 'ss':
+        return StandardScaler().fit_transform(df)
 
 
-def norm_all(df):
-    normed_colums = ['open', 'high', 'low', 'close', 'volume', 'market cap']
-    df[normed_colums] = np.log(df[normed_colums])
+def key_to_list(key):
+    if type(key) is tuple:
+        return list(key)
+    else:
+        return [key]
+
+
+def norm(df, params):
+    for columns, param in params.items():
+        df[key_to_list(columns)] = f_norm(df[key_to_list(columns)], param)
 
 
 dindex_f = data_dir + '/' + 'dominance.index.csv'
@@ -142,8 +202,8 @@ for coin in ['ethereum']:#cur_names:
         market = market.drop_duplicates(subset='date', keep='first')
 
         nan_filling(market)
-        if log_norm:
-               norm_all()
+        if norm_all:
+            norm(market, norm_all_params)
 
         start = n
         ids_count = (len(market) - start - r - l) // w
@@ -153,8 +213,8 @@ for coin in ['ethereum']:#cur_names:
             table_part = market[e: s]
 
             table_part = table_part.assign(id=coin+str(i)).assign(date=range(l))
-            if norm_in_block:
-                norm_block(table_part)
+            if norm_block:
+                norm(table_part, norm_block_params)
 
             if not table_part.isnull().any().any():
                 table.append(table_part)
@@ -167,7 +227,4 @@ Y = pd.DataFrame(Y, columns=['id', 'y', 'start', 'end'])
 
 p = '_N'+str(n)+'L'+str(l)+'W'+str(w)
 Y.to_csv('Y'+p+'.csv', index=False)
-table.to_csv('X'+p+'.csv', index=False)
-
-print(len(Y))
-
+table.drop(skip_colums,axis=1).to_csv('X'+p+'.csv', index=False)
