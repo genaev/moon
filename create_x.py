@@ -2,6 +2,7 @@ import pandas as pd     # analysing and aggregating the data
 import os.path
 import numpy as np
 from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import MinMaxScaler
 #from CoinMarketCap.CoinsList import CoinsList
 import argparse
 
@@ -11,7 +12,7 @@ parser.add_argument("-l", "--L", type=int, help="L days in the training set")
 parser.add_argument("-w", "--W", type=int, help="move the window for W days in each step of the cycle")
 args = parser.parse_args()
 
-data_dir = 'data'
+data_dir = 'data_test'
 
 # будем делать прогноз на N дней
 n = args.N if args.N else 30
@@ -26,9 +27,10 @@ r = 30
 #cur_names = eval(f.read())
 #f.close()
 #cur_names = CoinsList().get['coin_id'].tolist()
+cur_names = ['bitcoin',  'ethereum',  'ripple']
 
 norm_all = True
-norm_block = False
+norm_block = True
 
 skip_colums = ['marketcap_altcoin_index_market_cap_by_available_supply',
                'marketcap_altcoin_index_volume_usd',
@@ -40,7 +42,7 @@ skip_colums = ['marketcap_altcoin_index_market_cap_by_available_supply',
                'd_index_neo'
 ]
 
-norm_block_params = {('open', 'high', 'low', 'close'): '',
+norm_block_params = {('open', 'high', 'low', 'close'): 'mm',
                      'volume': '',
                      'market cap': '',
                      'marketcap_total_index_market_cap_by_available_supply': '',
@@ -68,17 +70,18 @@ norm_all_params = {('open', 'high', 'low', 'close'): 'log',
                    'marketcap_total_index_volume_usd': '',
                    'marketcap_altcoin_index_market_cap_by_available_supply': '',
                    'marketcap_altcoin_index_volume_usd': '',
-                   'd_index_bitcoin': '',
-                   'd_index_bitcoin-cash': '',
-                   'd_index_dash': '',
-                   'd_index_ethereum': '',
-                   'd_index_iota': '',
-                   'd_index_litecoin': '',
-                   'd_index_monero': '',
-                   'd_index_nem': '',
-                   'd_index_neo': '',
-                   'd_index_others': '',
-                   'd_index_ripple': '',
+                   ('d_index_bitcoin','d_index_bitcoin-cash','d_index_dash','d_index_ethereum','d_index_iota','d_index_litecoin','d_index_monero','d_index_nem','d_index_neo','d_index_others','d_index_ripple'): 'mm',
+#                   'd_index_bitcoin': '',
+#                   'd_index_bitcoin-cash': '',
+#                   'd_index_dash': '',
+#                   'd_index_ethereum': '',
+#                   'd_index_iota': '',
+#                   'd_index_litecoin': '',
+#                   'd_index_monero': '',
+#                   'd_index_nem': '',
+#                   'd_index_neo': '',
+#                   'd_index_others': '',
+#                   'd_index_ripple': '',                   
                    'reddit': 'log',
                    'twitter': 'log'}
 
@@ -115,14 +118,19 @@ Y = []
 
 def nan_filling(df):
     for i in interpolate_params:
-        df[i] = df[i].interpolate(limit=interpolate_params[i])
+        if i in df:
+            df[i] = df[i].interpolate(limit=interpolate_params[i])
 
 
 def f_norm(df, norm_type):
     if norm_type == 'log':
-        return np.log(df)
+        return np.log(df + 1)
     elif norm_type == 'ss':
         return StandardScaler().fit_transform(df)
+    elif norm_type == 'mm':
+        return MinMaxScaler().fit_transform(df)
+    else:
+        return df
 
 
 def key_to_list(key):
@@ -133,8 +141,12 @@ def key_to_list(key):
 
 
 def norm(df, params):
+    norm_df = df.copy()
     for columns, param in params.items():
-        df[key_to_list(columns)] = f_norm(df[key_to_list(columns)], param)
+        columns_list = key_to_list(columns)
+        if set(columns_list).issubset(set(df)):
+            norm_df[columns_list] = f_norm(df[columns_list], param)
+    return norm_df
 
 
 dindex_f = data_dir + '/' + 'dominance.index.csv'
@@ -157,7 +169,7 @@ if os.path.isfile(dindex_f):
     dindex = dindex.set_index('date').add_prefix('d_index_')
 
 
-for coin in ['ethereum']:#cur_names:
+for coin in cur_names:
     print(coin)
     reddit_f  = data_dir + '/' + coin + '.reddit.csv'
     twitter_f = data_dir + '/' + coin + '.twitter.csv'
@@ -202,15 +214,17 @@ for coin in ['ethereum']:#cur_names:
         market = market.drop_duplicates(subset='date', keep='first')
 
         nan_filling(market)
+
+        norm_market = market
         if norm_all:
-            norm(market, norm_all_params)
+            norm_market = market#norm(market, norm_all_params)
 
         start = n
         ids_count = (len(market) - start - r - l) // w
         for i in range(ids_count):
             e = start + i * w
             s = start + i * w + l
-            table_part = market[e: s]
+            table_part = norm_market[e: s]
 
             table_part = table_part.assign(id=coin+str(i)).assign(date=range(l))
             if norm_block:
@@ -224,7 +238,6 @@ for coin in ['ethereum']:#cur_names:
 
 table = pd.concat(table, ignore_index=True)
 Y = pd.DataFrame(Y, columns=['id', 'y', 'start', 'end'])
-
 p = '_N'+str(n)+'L'+str(l)+'W'+str(w)
 Y.to_csv('Y'+p+'.csv', index=False)
 table.drop(skip_colums,axis=1).to_csv('X'+p+'.csv', index=False)
