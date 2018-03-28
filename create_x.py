@@ -5,7 +5,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.preprocessing import MinMaxScaler
 #from CoinMarketCap.CoinsList import CoinsList
 import argparse
-
+#hello bro!
 parser = argparse.ArgumentParser()
 parser.add_argument("-n", "--N", type=int, help="forecast for N days")
 parser.add_argument("-l", "--L", type=int, help="L days in the training set")
