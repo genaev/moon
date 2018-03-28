@@ -31,7 +31,7 @@ cur_names = ['bitcoin',  'ethereum',  'ripple']
 
 norm_all = True
 norm_block = False
-pump = 1.5
+pumps = [1.5, 2]
 
 skip_colums = ['marketcap_altcoin_index_market_cap_by_available_supply',
                'marketcap_altcoin_index_volume_usd',
@@ -154,6 +154,15 @@ def norm(df, params):
         else:
             print(*columns_list, 'not in df')
     return norm_df
+
+
+def add_pump_count(x, j_count):
+    pumps_count = 0
+
+    for elem in reversed(Y[-j_count:]):
+        if elem['y'] > x:
+            pumps_count += 1
+        elem['pump' + str(x)] = pumps_count
 
 
 dindex_f = data_dir + '/' + 'dominance.index.csv'
@@ -290,12 +299,8 @@ for coin in cur_names:
 
                 Y.append(Y_elem)
 
-        pumps_count = 0
-
-        for elem in reversed(Y[-j:]):
-            if elem['y'] > pump:
-                pumps_count += 1
-            elem['pamps'] = pumps_count#/elem['age']
+        for x in pumps:
+            add_pump_count(x, j)
 
 
 table = pd.concat(table, ignore_index=True)
