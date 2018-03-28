@@ -19,7 +19,7 @@ n = args.N if args.N else 30
 # обучаться будем на выборке длины L
 l = args.L if args.L else 30
 # смещение окна будет W
-w = args.W if args.W else 15
+w = args.W if args.W else 30
 # не будем учитывать данные за первые R дней что бы избежать выбросов
 r = 30
 
@@ -30,7 +30,8 @@ r = 30
 cur_names = ['bitcoin',  'ethereum',  'ripple']
 
 norm_all = True
-norm_block = True
+norm_block = False
+pump = 1.5
 
 skip_colums = ['marketcap_altcoin_index_market_cap_by_available_supply',
                'marketcap_altcoin_index_volume_usd',
@@ -39,10 +40,10 @@ skip_colums = ['marketcap_altcoin_index_market_cap_by_available_supply',
                'd_index_ethereum',
                'd_index_monero',
                'd_index_nem',
-               'd_index_neo'
+               'd_index_neo',
 ]
 
-norm_block_params = {('open', 'high', 'low', 'close'): 'mm',
+norm_block_params = {('open', 'high', 'low', 'close'): 'ss',
                      'volume': '',
                      'market cap': '',
                      'marketcap_total_index_market_cap_by_available_supply': '',
@@ -66,11 +67,11 @@ norm_block_params = {('open', 'high', 'low', 'close'): 'mm',
 norm_all_params = {('open', 'high', 'low', 'close'): 'log',
                    'volume': 'log',
                    'market cap': 'log',
-                   'marketcap_total_index_market_cap_by_available_supply': '',
-                   'marketcap_total_index_volume_usd': '',
-                   'marketcap_altcoin_index_market_cap_by_available_supply': '',
-                   'marketcap_altcoin_index_volume_usd': '',
-                   ('d_index_bitcoin','d_index_bitcoin-cash','d_index_dash','d_index_ethereum','d_index_iota','d_index_litecoin','d_index_monero','d_index_nem','d_index_neo','d_index_others','d_index_ripple'): 'mm',
+                   'marketcap_total_index_market_cap_by_available_supply': 'log',
+                   'marketcap_total_index_volume_usd': 'log',
+                   'marketcap_altcoin_index_market_cap_by_available_supply': 'log',
+                   'marketcap_altcoin_index_volume_usd': 'log',
+                   ('d_index_bitcoin','d_index_bitcoin-cash','d_index_dash','d_index_ethereum','d_index_iota','d_index_litecoin','d_index_monero','d_index_nem','d_index_neo','d_index_others','d_index_ripple'): 'ss',
 #                   'd_index_bitcoin': '',
 #                   'd_index_bitcoin-cash': '',
 #                   'd_index_dash': '',
@@ -81,7 +82,7 @@ norm_all_params = {('open', 'high', 'low', 'close'): 'log',
 #                   'd_index_nem': '',
 #                   'd_index_neo': '',
 #                   'd_index_others': '',
-#                   'd_index_ripple': '',                   
+#                   'd_index_ripple': '',
                    'reddit': 'log',
                    'twitter': 'log'}
 
@@ -126,9 +127,13 @@ def f_norm(df, norm_type):
     if norm_type == 'log':
         return np.log(df + 1)
     elif norm_type == 'ss':
-        return StandardScaler().fit_transform(df)
+        scaler = StandardScaler()
+        scaler.fit(df.values.reshape(-1, 1).astype(np.float64))
+        return scaler.transform(df)
     elif norm_type == 'mm':
-        return MinMaxScaler().fit_transform(df)
+        scaler = MinMaxScaler()
+        scaler.fit(df.values.reshape(-1, 1).astype(np.float64))
+        return scaler.transform(df)
     else:
         return df
 
@@ -146,6 +151,8 @@ def norm(df, params):
         columns_list = key_to_list(columns)
         if set(columns_list).issubset(set(df)):
             norm_df[columns_list] = f_norm(df[columns_list], param)
+        else:
+            print(*columns_list, 'not in df')
     return norm_df
 
 
@@ -168,13 +175,13 @@ if os.path.isfile(dindex_f):
     dindex.date = pd.to_datetime(dindex.date).dt.date
     dindex = dindex.set_index('date').add_prefix('d_index_')
 
-
+clusters = set()
 for coin in cur_names:
     print(coin)
     reddit_f  = data_dir + '/' + coin + '.reddit.csv'
     twitter_f = data_dir + '/' + coin + '.twitter.csv'
     market_f  = data_dir + '/' + coin + '.market.csv'
-    coindar_f = data_dir + '/' + coin + '.market.csv'
+    coindar_f = data_dir + '/' + coin + '.coindar.csv'
 
     if os.path.isfile(market_f):
         market = pd.read_csv(market_f, index_col='Unnamed: 0').rename(str.lower, axis='columns')
@@ -196,48 +203,104 @@ for coin in cur_names:
             reddit.date = pd.to_datetime(reddit.date).dt.date
             reddit = reddit.rename(index=str, columns={'subscriber_count': 'reddit'}).set_index('date')
             market = market.join(reddit, on='date')
-            market['has_reddit'] = 1
+            has_reddit = 1
         else:
             market['reddit'] = 0
-            market['has_reddit'] = 0
+            has_reddit = 0
 
         if os.path.isfile(twitter_f):
             twitter = pd.read_csv(twitter_f, index_col='Unnamed: 0')
             twitter.date = pd.to_datetime(twitter.date).dt.date
             twitter = twitter.rename(index=str, columns={'subscriber_count': 'twitter'}).set_index('date')
             market = market.join(twitter, on='date')
-            market['has_twitter'] = 1
+            has_twitter = 1
         else:
             market['twitter'] = 0
-            market['has_twitter'] = 0
+            has_twitter = 0
+
+        if os.path.isfile(coindar_f):
+            coindar = pd.read_csv(coindar_f, index_col='Unnamed: 0')
+            coindar = coindar.rename(index=str, columns={'start_date': 'date'})
+            coindar.date = pd.to_datetime(coindar.date).dt.date
+            coindar = coindar.set_index('date').cluster.sort_index()
+            s = set(coindar)
+            new_clusters = s.difference(clusters)
+            clusters = clusters.union(s)
+
+            print(new_clusters)
+            for cluster in new_clusters:
+                for elem in Y:
+                    elem['past_events' + str(cluster)] = 0
+                    elem['future_events' + str(cluster)] = 0
 
         market = market.drop_duplicates(subset='date', keep='first')
 
         nan_filling(market)
 
-        norm_market = market
         if norm_all:
-            norm_market = market#norm(market, norm_all_params)
+            norm_market = norm(market, norm_all_params)
+        else:
+            norm_market = market
 
         start = n
         ids_count = (len(market) - start - r - l) // w
+        j = 0
         for i in range(ids_count):
-            e = start + i * w
-            s = start + i * w + l
-            table_part = norm_market[e: s]
+            e = start + i*w
+            s = e + l
+            table_part = norm_market[e : s]
 
             table_part = table_part.assign(id=coin+str(i)).assign(date=range(l))
             if norm_block:
-                norm(table_part, norm_block_params)
+                table_part = norm(table_part, norm_block_params)
 
             if not table_part.isnull().any().any():
+                j += 1
+
                 table.append(table_part)
 
-            y = market.low[e - n: e].max() / np.mean([market.high.iloc[e],market.low.iloc[e]])
-            Y.append([coin + str(i), y, market.date.iloc[s], market.date.iloc[e]])
+                y = market.low[e - n: e].max() / np.mean([market.high.iloc[e],market.low.iloc[e]])
+                Y_elem = {'id': coin + str(i),
+                          'y': y,
+                          'start': market.date.iloc[s],
+                          'end': market.date.iloc[e],
+                          'predicted': market.date.iloc[e - n],
+                          'has_reddit': has_reddit,
+                          'has_twitter': has_twitter,
+                          'age': ids_count - i
+                          }
+
+                if os.path.isfile(coindar_f):
+                    future_events = coindar[Y_elem['end']:Y_elem['predicted']].value_counts()
+                    past_events = coindar[Y_elem['start']:Y_elem['end']].value_counts()
+                    for cluster in clusters:
+                        if cluster in future_events:
+                            Y_elem['future_events' + str(cluster)] = future_events[cluster]
+                        else:
+                            Y_elem['future_events' + str(cluster)] = 0
+
+                        if cluster in past_events:
+                            Y_elem['past_events' + str(cluster)] = past_events[cluster]
+                        else:
+                            Y_elem['past_events' + str(cluster)] = 0
+                else:
+                    for cluster in clusters:
+                        Y_elem['future_events' + str(cluster)] = 0
+                        Y_elem['past_events' + str(cluster)] = 0
+
+                Y.append(Y_elem)
+
+        pumps_count = 0
+
+        for elem in reversed(Y[-j:]):
+            if elem['y'] > pump:
+                pumps_count += 1
+            elem['pamps'] = pumps_count#/elem['age']
+
 
 table = pd.concat(table, ignore_index=True)
-Y = pd.DataFrame(Y, columns=['id', 'y', 'start', 'end'])
+Y = pd.DataFrame(Y)
+print(Y)
 p = '_N'+str(n)+'L'+str(l)+'W'+str(w)
 Y.to_csv('Y'+p+'.csv', index=False)
 table.drop(skip_colums,axis=1).to_csv('X'+p+'.csv', index=False)
