@@ -17,9 +17,9 @@ data_dir = 'data_test'
 # будем делать прогноз на N дней
 n = args.N if args.N else 30
 # обучаться будем на выборке длины L
-l = args.L if args.L else 30
+l = args.L if args.L else 50
 # смещение окна будет W
-w = args.W if args.W else 30
+w = args.W if args.W else 10
 # не будем учитывать данные за первые R дней что бы избежать выбросов
 r = 30
 
@@ -27,11 +27,11 @@ r = 30
 #cur_names = eval(f.read())
 #f.close()
 #cur_names = CoinsList().get['coin_id'].tolist()
-cur_names = ['bitcoin',  'ethereum',  'ripple']
+cur_names = ['bitcoin',  'ethereum',  'ripple', 'jewels']#, 'ixcoin', 'energycoin']
 
 norm_all = True
 norm_block = False
-pumps = [1.5, 2]
+pumps = [1, 1.5, 2]
 
 skip_colums = ['marketcap_altcoin_index_market_cap_by_available_supply',
                'marketcap_altcoin_index_volume_usd',
@@ -157,12 +157,13 @@ def norm(df, params):
 
 
 def add_pump_count(x, j_count):
-    pumps_count = 0
+    if j_count > 0:
+        pumps_count = 0
 
-    for elem in reversed(Y[-j_count:]):
-        if elem['y'] > x:
-            pumps_count += 1
-        elem['pump' + str(x)] = pumps_count
+        for elem in reversed(Y[-j_count:]):
+            if elem['y'] > x:
+                pumps_count += 1
+            elem['pump' + str(x)] = pumps_count
 
 
 dindex_f = data_dir + '/' + 'dominance.index.csv'
@@ -276,7 +277,11 @@ for coin in cur_names:
                           'predicted': market.date.iloc[e - n],
                           'has_reddit': has_reddit,
                           'has_twitter': has_twitter,
-                          'age': ids_count - i
+                          'age': ids_count - i,
+                          '<0.01$': int(market.low[e] < 0.01),
+                          '<1$': int(0.01 < market.low[e] < 1),
+                          '<100$': int(1 < market.low[e] < 100),
+                          '>100$': int(100 < market.low[e])
                           }
 
                 if os.path.isfile(coindar_f):
@@ -305,7 +310,7 @@ for coin in cur_names:
 
 table = pd.concat(table, ignore_index=True)
 Y = pd.DataFrame(Y)
-print(Y)
+print(Y[['pump1','id']])
 p = '_N'+str(n)+'L'+str(l)+'W'+str(w)
 Y.to_csv('Y'+p+'.csv', index=False)
 table.drop(skip_colums,axis=1).to_csv('X'+p+'.csv', index=False)
