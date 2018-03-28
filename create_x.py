@@ -3,7 +3,7 @@ import os.path
 import numpy as np
 from sklearn.preprocessing import StandardScaler
 from sklearn.preprocessing import MinMaxScaler
-#from CoinMarketCap.CoinsList import CoinsList
+from CoinMarketCap.CoinsList import CoinsList
 import argparse
 
 parser = argparse.ArgumentParser()
@@ -12,7 +12,7 @@ parser.add_argument("-l", "--L", type=int, help="L days in the training set")
 parser.add_argument("-w", "--W", type=int, help="move the window for W days in each step of the cycle")
 args = parser.parse_args()
 
-data_dir = 'data_test'
+data_dir = 'data'
 
 # будем делать прогноз на N дней
 n = args.N if args.N else 30
@@ -26,10 +26,10 @@ r = 30
 #f = open('cur_list')
 #cur_names = eval(f.read())
 #f.close()
-#cur_names = CoinsList().get['coin_id'].tolist()
-cur_names = ['bitcoin',  'ethereum',  'ripple', 'jewels']#, 'ixcoin', 'energycoin']
+cur_names = CoinsList().get['coin_id'].tolist()
+#cur_names = ['bitcoin',  'ethereum',  'ripple', 'jewels']#, 'ixcoin', 'energycoin']
 
-norm_all = True
+norm_all = False
 norm_block = False
 pumps = [1, 1.5, 2]
 
@@ -164,6 +164,7 @@ def add_pump_count(x, j_count):
             if elem['y'] > x:
                 pumps_count += 1
             elem['pump' + str(x)] = pumps_count
+            elem['pump_p' + str(x)] = pumps_count/j_count
 
 
 dindex_f = data_dir + '/' + 'dominance.index.csv'
@@ -278,10 +279,10 @@ for coin in cur_names:
                           'has_reddit': has_reddit,
                           'has_twitter': has_twitter,
                           'age': ids_count - i,
-                          '<0.01$': int(market.low[e] < 0.01),
-                          '<1$': int(0.01 < market.low[e] < 1),
-                          '<100$': int(1 < market.low[e] < 100),
-                          '>100$': int(100 < market.low[e])
+                          'less_0.01': int(market.low[e] < 0.01),
+                          'less_1': int(0.01 < market.low[e] < 1),
+                          'less_100': int(1 < market.low[e] < 100),
+                          'more_100': int(100 < market.low[e])
                           }
 
                 if os.path.isfile(coindar_f):
@@ -310,7 +311,7 @@ for coin in cur_names:
 
 table = pd.concat(table, ignore_index=True)
 Y = pd.DataFrame(Y)
-print(Y[['pump1','id']])
+#print(Y[['pump1','id']])
 p = '_N'+str(n)+'L'+str(l)+'W'+str(w)
 Y.to_csv('Y'+p+'.csv', index=False)
 table.drop(skip_colums,axis=1).to_csv('X'+p+'.csv', index=False)
