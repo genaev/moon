@@ -94,9 +94,9 @@ interpolate_params ={'date': 0,
                      'd_index_neo': 1,
                      'd_index_others': 1,
                      'd_index_ripple': 1,
-                     'reddit': 5,
+                     'reddit': 20,
                      'has_reddit': 0,
-                     'twitter': 5,
+                     'twitter': 20,
                      'has_twitter': 0}
 
 small_x = []
@@ -175,7 +175,7 @@ if os.path.isfile(dindex_f):
     dindex = dindex.set_index('date').add_prefix('d_index_')
 
 clusters = set()
-for coin in cur_names:
+for coin in ['bitcoin']:
     print(coin)
     reddit_f  = data_dir + '/' + coin + '.reddit.csv'
     twitter_f = data_dir + '/' + coin + '.twitter.csv'
@@ -299,6 +299,9 @@ for coin in cur_names:
                 if i == 0:
                     small_x.append(table_part)
                     small_Y.append(Y_elem)
+
+            else:
+                print(table_part)
 
         for x in pumps:
             add_pump_count(x, j)

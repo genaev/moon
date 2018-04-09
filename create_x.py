@@ -12,7 +12,7 @@ parser.add_argument("-l", "--L", type=int, help="L days in the training set")
 parser.add_argument("-w", "--W", type=int, help="move the window for W days in each step of the cycle")
 args = parser.parse_args()
 
-data_dir = 'data'
+data_dir = 'data_test'
 
 # будем делать прогноз на N дней
 n = args.N if args.N else 30
@@ -72,17 +72,6 @@ norm_all_params = {('open', 'high', 'low', 'close'): 'log',
                    'marketcap_altcoin_index_market_cap_by_available_supply': 'log',
                    'marketcap_altcoin_index_volume_usd': 'log',
                    ('d_index_bitcoin','d_index_bitcoin-cash','d_index_dash','d_index_ethereum','d_index_iota','d_index_litecoin','d_index_monero','d_index_nem','d_index_neo','d_index_others','d_index_ripple'): 'ss',
-#                   'd_index_bitcoin': '',
-#                   'd_index_bitcoin-cash': '',
-#                   'd_index_dash': '',
-#                   'd_index_ethereum': '',
-#                   'd_index_iota': '',
-#                   'd_index_litecoin': '',
-#                   'd_index_monero': '',
-#                   'd_index_nem': '',
-#                   'd_index_neo': '',
-#                   'd_index_others': '',
-#                   'd_index_ripple': '',
                    'reddit': 'log',
                    'twitter': 'log'}
 
@@ -254,12 +243,12 @@ for coin in cur_names:
             norm_market = market
 
         start = n
-        ids_count = (len(market) - start - r - l) // w
+        ids_count = (len(market) - n - r - l) // w
         j = 0
         for i in range(ids_count):
             e = start + i*w
             s = e + l
-            table_part = norm_market[e : s]
+            table_part = norm_market[e:s]
 
             table_part = table_part.assign(id=coin+str(i)).assign(date=range(l))
             if norm_block:
@@ -284,6 +273,8 @@ for coin in cur_names:
                           'less_100': int(1 < market.low[e] < 100),
                           'more_100': int(100 < market.low[e])
                           }
+
+                print(Y_elem['start'], Y_elem['end'], Y_elem['predicted'])
 
                 if os.path.isfile(coindar_f):
                     future_events = coindar[Y_elem['end']:Y_elem['predicted']].value_counts()
