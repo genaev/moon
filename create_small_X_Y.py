@@ -199,7 +199,9 @@ def norm(df, params):
 
 
 clusters = set()
-for coin in ['bitcoin']:
+#for coin in cur_names:
+for coin in ["bitcoin","eccoin","energycoin","ethereum","ixcoin","jewels","ripple"]:
+    print (coin)
     make_x_y(*make_df(coin), clusters)
 
 X = pd.concat(X, ignore_index=True)
