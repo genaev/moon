@@ -207,3 +207,4 @@ Y = pd.DataFrame(Y)
 p = '_N'+str(pred)+'L'+str(l)+'W'+str(w)
 Y.to_csv('small_new_Y'+p+'.csv', index=False)
 X.drop(skip_colums,axis=1).to_csv('small_new_X'+p+'.csv', index=False)
+#
