@@ -103,7 +103,7 @@ def make_x_y(market, coindar, has_twitter, has_reddit, clusters):
         if not table_part.isnull().any().any():
 
             X.append(table_part)
-
+#aaa
             y = market.low[end: end + n].max() / np.mean([market.high.iloc[end], market.low.iloc[end]])
             y_elem = {'id': coin + str(ids_count - i),
                       'y': y,
