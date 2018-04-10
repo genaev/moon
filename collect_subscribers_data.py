@@ -9,7 +9,7 @@ import os.path
 # set the delay between requests
 wait_time = 1
 #data_file = 'data.csv'
-out_dir = "data_test"
+out_dir = "data"
 
 def to_csv(data,csv_file):
     df = pd.DataFrame(data)
@@ -50,7 +50,7 @@ def download_by_coin(coin,out_dir,rewrite):
         tw_file = out_dir + '/' + coin + '.twitter.csv'
         tw_user = l.twitter
         tw = TwitterData(tw_user)
-        if (os.path.isfile(rd_file) is True and rewrite is not True):
+        if (os.path.isfile(tw_file) is True and rewrite is not True):
             cur_data = pd.read_csv(tw_file,index_col="Unnamed: 0")
             new_data = tw.get
             data = update_data(cur_data,new_data)
@@ -61,7 +61,7 @@ def download_by_coin(coin,out_dir,rewrite):
 
 
 # download data for several coin
-#download_by_coin("eccoin",out_dir,False)
+#download_by_coin("zcash",out_dir,False)
 #exit(0)
 
 # download data for all coins
