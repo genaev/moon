@@ -14,7 +14,6 @@ pred = n
 n = 0
 
 
-
 def make_df(coin):
     market_f = data_dir + '/' + coin + '.market.csv'
     dindex_f = data_dir + '/' + 'dominance.index.csv'
@@ -74,6 +73,8 @@ def make_df(coin):
             coindar = coindar.rename(index=str, columns={'start_date': 'date'})
             coindar.date = pd.to_datetime(coindar.date).dt.date
             coindar = coindar.set_index('date').cluster.sort_index()
+        else:
+            coindar = pd.DataFrame()
 
         return market, coindar, has_twitter, has_reddit
 
@@ -155,8 +156,11 @@ def make_x_y(market, coindar, has_twitter, has_reddit, clusters):
                     y_elem['pump_p' + str(i)] = pumps_count[i] / ids_count
         start += w
 
-    X.append(x_elem)
-    Y.append(y_elem)
+    try:
+        X.append(x_elem)
+        Y.append(y_elem)
+    except:
+        pass
 
 
 def nan_filling(df):
