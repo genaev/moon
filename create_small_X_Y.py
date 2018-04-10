@@ -82,7 +82,8 @@ def make_df(coin):
         return False
 
 
-def make_x_y(market, coindar, has_twitter, has_reddit, clusters):
+def make_x_y(market, coindar, has_twitter, has_reddit):
+    global clusters
     pumps_count = {i: 0 for i in pumps}
 
     if not coindar.empty:
@@ -153,17 +154,18 @@ def make_x_y(market, coindar, has_twitter, has_reddit, clusters):
                 if y_elem['y'] > i:
                     pumps_count[i] += 1
                     y_elem['pump' + str(i)] = pumps_count[i]
-                    y_elem['pump_p' + str(i)] = pumps_count[i] / ids_count
+                    y_elem['pump_p' + str(i)] = pumps_count[i] / (ids_count + 1)
                 else:
                     y_elem['pump' + str(i)] = pumps_count[i]
-                    y_elem['pump_p' + str(i)] = pumps_count[i] / ids_count
+                    y_elem['pump_p' + str(i)] = pumps_count[i] / (ids_count + 1)
         start += w
 
     try:
         X.append(x_elem)
         Y.append(y_elem)
+        print(' added ')
     except:
-        pass
+        print()
 
 
 def nan_filling(df):
@@ -205,13 +207,13 @@ def norm(df, params):
     return norm_df
 
 
-clusters = set()
 #for coin in cur_names:
-for coin in ["wanchain","bitcoin","eccoin","energycoin","ethereum","ixcoin","jewels","ripple"]:
+for coin in ["sagacoin","wanchain","bitcoin","eccoin","energycoin","ethereum","ixcoin","jewels","ripple"]:
     dfs = make_df(coin)
+
     if dfs:
-        print(coin)
-        make_x_y(*dfs, clusters)
+        print(coin , end='')
+        make_x_y(*dfs)
 
 X = pd.concat(X, ignore_index=True)
 Y = pd.DataFrame(Y)
