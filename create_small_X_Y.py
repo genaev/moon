@@ -78,6 +78,9 @@ def make_df(coin):
 
         return market, coindar, has_twitter, has_reddit
 
+    else:
+        return False
+
 
 def make_x_y(market, coindar, has_twitter, has_reddit, clusters):
     pumps_count = {i: 0 for i in pumps}
@@ -204,9 +207,11 @@ def norm(df, params):
 
 clusters = set()
 #for coin in cur_names:
-for coin in ["bitcoin","eccoin","energycoin","ethereum","ixcoin","jewels","ripple"]:
-    print (coin)
-    make_x_y(*make_df(coin), clusters)
+for coin in ["wanchain","bitcoin","eccoin","energycoin","ethereum","ixcoin","jewels","ripple"]:
+    dfs = make_df(coin)
+    if dfs:
+        print(coin)
+        make_x_y(*dfs, clusters)
 
 X = pd.concat(X, ignore_index=True)
 Y = pd.DataFrame(Y)
