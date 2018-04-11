@@ -36,6 +36,7 @@ for col in Y.columns.values:
 
 X_train, X_test, y_train, y_test = train_test_split(X, Y.y, test_size=0.33, random_state=17)
 ratio = float(np.sum(y_train == 0)) / np.sum(y_train == 1)
+print("ratio=",ratio)
 
 dtrain = xgb.DMatrix(X_train, label=y_train)
 dtest = xgb.DMatrix(X_test)
