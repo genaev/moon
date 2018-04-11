@@ -4,7 +4,7 @@ import xgboost as xgb
 import xgbfir
 import ast
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import precision_recall_curve, classification_report
+from sklearn.metrics import classification_report
 import argparse
 
 parser = argparse.ArgumentParser()
