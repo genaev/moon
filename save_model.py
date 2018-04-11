@@ -5,6 +5,7 @@ import xgbfir
 import ast
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import precision_recall_curve, classification_report
+import argparse
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-x", "--X",  required=True, help="input X file")
@@ -18,9 +19,10 @@ Y_file = args.Y
 model_file= args.O
 best_params = ast.literal_eval(args.P)
 best_params['learning_rate'] = 0.001
+best_params['max_depth'] = int(best_params['max_depth'])
 best_params['eval_metric'] = 'error'
 best_params['objective'] = 'binary:logistic'
-best_params['nthread'] = 8
+best_params['nthread'] = 28
 best_params['silent'] = 1
 
 trh = 2
@@ -71,3 +73,12 @@ xgboost_predict_proba = bestXgb.predict(dtest)
 y_test_preds = (xgboost_predict_proba > 0.5).astype('int')
 report = classification_report(y_test, y_test_preds)
 print(report)
+
+infofile = open(model_file+'.info', 'w')
+infofile.write('X= ' + X_file + '\n')
+infofile.write('Y= ' + Y_file + '\n')
+infofile.write('params= ' + args.P + '\n')
+infofile.write('ratio= ' + str(ratio) + '\n')
+infofile.write('num_round=' + str(best_num_round) + '\n')
+infofile.write(report)
+infofile.close()
