@@ -33,35 +33,41 @@ def download_by_coin(coin,out_dir,rewrite):
     # reddit data downloading
     if l.reddit != None:
         rd = RedditData(l.reddit)
+        new_data = rd.get
         rd_file = out_dir + '/' + coin + '.reddit.csv'
-        if (os.path.isfile(rd_file) is True and os.path.isfile(rd_file) is not True):
+        if (new_data.empty is True):
+            pass #To do nothing
+        elif (os.path.isfile(rd_file) is True and os.path.isfile(rd_file) is not True):
             cur_data = pd.read_csv(rd_file,index_col="Unnamed: 0")
-            new_data = rd.get
+            #new_data = rd.get
             data = update_data(cur_data,new_data)
             to_csv(data, rd_file)
             # print ("cur=", cur_data.head(), cur_data.shape )
             # print ("new=", new_data.head(), new_data.shape )
             # print ("data=", data.head(), data.shape, data.info() )
         else:
-            to_csv(rd.get,rd_file)
+            to_csv(new_data,rd_file)
             
     # twitter data downloading
     if l.twitter != None:
         tw_file = out_dir + '/' + coin + '.twitter.csv'
-        tw_user = l.twitter
-        tw = TwitterData(tw_user)
-        if (os.path.isfile(tw_file) is True and rewrite is not True):
+        tw = TwitterData(l.twitter)
+        new_data = tw.get
+        if (new_data is None or new_data.empty is True):
+            pass #To do nothing
+        elif (os.path.isfile(tw_file) is True and rewrite is not True):
             cur_data = pd.read_csv(tw_file,index_col="Unnamed: 0")
-            new_data = tw.get
+            #print ("cur=", cur_data.head(), cur_data.shape )
+            #print ("new=", new_data.head(), new_data.shape )
             data = update_data(cur_data,new_data)
             to_csv(data, tw_file)
         else:
-            to_csv(tw.get, tw_file)
+            to_csv(new_data, tw_file)
 
 
 
 # download data for several coin
-#download_by_coin("zcash",out_dir,False)
+#download_by_coin("spectrecoin",out_dir,False)
 #exit(0)
 
 # download data for all coins
