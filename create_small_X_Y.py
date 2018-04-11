@@ -113,7 +113,7 @@ def make_x_y(market, coindar, has_twitter, has_reddit):
 
             x_elem = table_part
 
-            if end + pred > len(market):
+            if end + pred < len(market):
                 y = market.low[end: end + pred].max() / np.mean([market.high.iloc[end], market.low.iloc[end]])
             else:
                 y = np.nan
@@ -216,7 +216,7 @@ for coin in ["sagacoin","wanchain","bitcoin","eccoin","energycoin","ethereum","i
         make_x_y(*dfs)
 
 X = pd.concat(X, ignore_index=True)
-Y = pd.DataFrame(Y)
+Y = pd.DataFrame(Y).drop('y', axis=1)
 p = '_N'+str(pred)+'L'+str(l)+'W'+str(w)
 Y.to_csv('small_new_Y'+p+'.csv', index=False)
 X.drop(skip_colums,axis=1).to_csv('small_new_X'+p+'.csv', index=False)
