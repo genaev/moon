@@ -25,6 +25,19 @@ def update_data (cur_data,new_data):
         subset=['date'], keep='first').reset_index(drop=True)
     return data
 
+def process_data(new_data,out_file,rewrite):
+    if (new_data is None or new_data.empty is True):
+        print ("\tno new data for",out_file)
+        pass  # To do nothing
+    elif (os.path.isfile(out_file) is True and rewrite is not True):
+        cur_data = pd.read_csv(out_file, index_col="Unnamed: 0")
+        data = update_data(cur_data, new_data)
+        to_csv(data, out_file)
+        # print ("cur=", cur_data.head(), cur_data.shape )
+        # print ("new=", new_data.head(), new_data.shape )
+        # print ("data=", data.head(), data.shape, data.info() )
+    else:
+        to_csv(new_data, out_file)
 
 def download_by_coin(coin,out_dir,rewrite):
     l = SocialLinks("https://coinmarketcap.com/currencies/"+coin+"/")
@@ -35,39 +48,17 @@ def download_by_coin(coin,out_dir,rewrite):
         rd = RedditData(l.reddit)
         new_data = rd.get
         rd_file = out_dir + '/' + coin + '.reddit.csv'
-        if (new_data.empty is True):
-            pass #To do nothing
-        elif (os.path.isfile(rd_file) is True and os.path.isfile(rd_file) is not True):
-            cur_data = pd.read_csv(rd_file,index_col="Unnamed: 0")
-            #new_data = rd.get
-            data = update_data(cur_data,new_data)
-            to_csv(data, rd_file)
-            # print ("cur=", cur_data.head(), cur_data.shape )
-            # print ("new=", new_data.head(), new_data.shape )
-            # print ("data=", data.head(), data.shape, data.info() )
-        else:
-            to_csv(new_data,rd_file)
-            
+        process_data(new_data,rd_file,rewrite)
+
     # twitter data downloading
     if l.twitter != None:
-        tw_file = out_dir + '/' + coin + '.twitter.csv'
         tw = TwitterData(l.twitter)
         new_data = tw.get
-        if (new_data is None or new_data.empty is True):
-            pass #To do nothing
-        elif (os.path.isfile(tw_file) is True and rewrite is not True):
-            cur_data = pd.read_csv(tw_file,index_col="Unnamed: 0")
-            #print ("cur=", cur_data.head(), cur_data.shape )
-            #print ("new=", new_data.head(), new_data.shape )
-            data = update_data(cur_data,new_data)
-            to_csv(data, tw_file)
-        else:
-            to_csv(new_data, tw_file)
-
-
+        tw_file = out_dir + '/' + coin + '.twitter.csv'
+        process_data(new_data,tw_file,rewrite)
 
 # download data for several coin
-#download_by_coin("spectrecoin",out_dir,False)
+#download_by_coin("bitcoin-diamond",out_dir,False)
 #exit(0)
 
 # download data for all coins
