@@ -96,6 +96,7 @@ def make_x_y(market, coindar, has_twitter, has_reddit):
 
     market = market.drop_duplicates(subset='date', keep='first')
     nan_filling(market)
+
     if norm_all:
         norm_market = norm(market, norm_all_params)
     else:
@@ -108,6 +109,18 @@ def make_x_y(market, coindar, has_twitter, has_reddit):
         table_part = norm_market[start+1:end+1]
         table_part = table_part[::-1]
         table_part = table_part.assign(id=coin + str(ids_count - i)).assign(date=range(l))
+
+        if has_reddit == 1 and table_part.reddit.isnull().any():
+            local_has_reddit = 0
+            table_part.reddit = 0
+        else:
+            local_has_reddit = 1
+
+        if has_twitter == 1 and table_part.twitter.isnull().any():
+            local_has_twitter = 0
+            table_part.twitter = 0
+        else:
+            local_has_twitter = 1
 
         if not table_part.isnull().any().any():
 
@@ -123,8 +136,8 @@ def make_x_y(market, coindar, has_twitter, has_reddit):
                       'start': market.date.iloc[start],
                       'end': market.date.iloc[end],
                       'predicted': market.date.iloc[end] + datetime.timedelta(days=pred),
-                      'has_reddit': has_reddit,
-                      'has_twitter': has_twitter,
+                      'has_reddit': local_has_reddit,
+                      'has_twitter': local_has_twitter,
                       'age': i,
                       'less_0.01': int(market.low[end] < 0.01),
                       'less_1': int(0.01 < market.low[end] < 1),
@@ -171,7 +184,7 @@ def make_x_y(market, coindar, has_twitter, has_reddit):
 def nan_filling(df):
     for i in interpolate_params:
         if i in df:
-            df[i] = df[i].interpolate(limit=interpolate_params[i])
+            df[i] = df[i].interpolate(limit=interpolate_params[i], limit_direction='both')
 
 
 def f_norm(df, norm_type):
@@ -207,8 +220,8 @@ def norm(df, params):
     return norm_df
 
 
-#for coin in cur_names:
-for coin in ["sagacoin","wanchain","bitcoin","eccoin","energycoin","ethereum","ixcoin","jewels","ripple"]:
+for coin in cur_names:
+# for coin in ['bitcoin']:#["sagacoin","wanchain","bitcoin","eccoin","energycoin","ethereum","ixcoin","jewels","ripple"]:
     dfs = make_df(coin)
 
     if dfs:
