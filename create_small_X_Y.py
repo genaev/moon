@@ -11,7 +11,7 @@ Y = []
 clusters = set()
 new_clusters = set()
 pred = n
-n = 0
+n = 9
 
 
 def make_df(coin):
@@ -174,9 +174,10 @@ def make_x_y(market, coindar, has_twitter, has_reddit):
         start += w
 
     try:
-        X.append(x_elem)
-        Y.append(y_elem)
-        print(' added ')
+        if y_elem['age'] - ids_count == 0:
+            X.append(x_elem)
+            Y.append(y_elem)
+            print(' added ')
     except:
         print()
 
