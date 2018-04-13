@@ -1,28 +1,15 @@
 from CoinMarketCap.CoinsList import CoinsList
 import argparse
 
-parser = argparse.ArgumentParser()
-parser.add_argument("-n", "--N", type=int, help="forecast for N days")
-parser.add_argument("-l", "--L", type=int, help="L days in the training set")
-parser.add_argument("-w", "--W", type=int, help="move the window for W days in each step of the cycle")
-args = parser.parse_args()
-
 data_dir = 'data_test'
-
-# будем делать прогноз на N дней
-n = args.N if args.N else 30
-# обучаться будем на выборке длины L
-l = args.L if args.L else 70
-# смещение окна будет W
-w = args.W if args.W else 5
-# не будем учитывать данные за первые R дней что бы избежать выбросов
-r = 30
 
 cur_names = CoinsList().get['coin_id'].tolist()
 
 norm_all = False
 norm_block = False
 pumps = [1, 1.5, 2]
+
+unpumps = [1, 0.66, 0.5]
 
 skip_colums = ['marketcap_altcoin_index_market_cap_by_available_supply',
                'marketcap_altcoin_index_volume_usd',

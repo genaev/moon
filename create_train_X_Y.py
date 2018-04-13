@@ -4,6 +4,22 @@ import numpy as np
 from sklearn.preprocessing import StandardScaler
 from sklearn.preprocessing import MinMaxScaler
 from params import *
+import argparse
+
+parser = argparse.ArgumentParser()
+parser.add_argument("-n", "--N", type=int, help="forecast for N days")
+parser.add_argument("-l", "--L", type=int, help="L days in the training set")
+parser.add_argument("-w", "--W", type=int, help="move the window for W days in each step of the cycle")
+args = parser.parse_args()
+
+# будем делать прогноз на N дней
+n = args.N if args.N else 30
+# обучаться будем на выборке длины L
+l = args.L if args.L else 70
+# смещение окна будет W
+w = args.W if args.W else 5
+# не будем учитывать данные за первые R дней что бы избежать выбросов
+r = 30
 
 X = []
 Y = []
@@ -74,8 +90,10 @@ def make_df(coin):
         return market, coindar, has_twitter, has_reddit
 
 
-def make_x_y(market, coindar, has_twitter, has_reddit, clusters):
+def make_x_y(market, coindar, has_twitter, has_reddit):
+    global clusters
     pumps_count = {i: 0 for i in pumps}
+    unpumps_count = {i: 0 for i in unpumps}
 
     if not coindar.empty:
         new_clusters = set(coindar).difference(clusters)
@@ -103,7 +121,7 @@ def make_x_y(market, coindar, has_twitter, has_reddit, clusters):
         if not table_part.isnull().any().any():
 
             X.append(table_part)
-#aaa
+
             y = market.low[end: end + n].max() / np.mean([market.high.iloc[end], market.low.iloc[end]])
             y_elem = {'id': coin + str(ids_count - i),
                       'y': y,
@@ -145,6 +163,22 @@ def make_x_y(market, coindar, has_twitter, has_reddit, clusters):
                 else:
                     y_elem['pump' + str(i)] = pumps_count[i]
                     y_elem['pump_p' + str(i)] = pumps_count[i] / ids_count
+
+            for i in unpumps:
+                if y_elem['y'] < i:
+                    unpumps_count[i] += 1
+                    y_elem['unpump' + str(i)] = unpumps_count[i]
+                    y_elem['unpump_p' + str(i)] = unpumps_count[i] / ids_count
+                else:
+                    y_elem['unpump' + str(i)] = unpumps_count[i]
+                    y_elem['unpump_p' + str(i)] = unpumps_count[i] / ids_count
+
+            months = set(market.date[end: end + n].map(lambda x: x.month))
+            for month in range(1,13):
+                if month in months:
+                    y_elem['month' + str(month)] = 1
+                else:
+                    y_elem['month' + str(month)] = 0
 
             Y.append(y_elem)
 
@@ -191,12 +225,11 @@ def norm(df, params):
             print(*columns_list, 'not in df')
     return norm_df
 
-clusters = set()
 for coin in ['bitcoin']:
-    make_x_y(*make_df(coin), clusters)
+    make_x_y(*make_df(coin))
 
 X = pd.concat(X, ignore_index=True)
 Y = pd.DataFrame(Y)
 p = '_N'+str(n)+'L'+str(l)+'W'+str(w)
-Y.to_csv('new_Y'+p+'.csv', index=False)
-X.drop(skip_colums,axis=1).to_csv('new_X'+p+'.csv', index=False)
+Y.to_csv('Y'+p+'.csv', index=False)
+X.drop(skip_colums,axis=1).to_csv('X'+p+'.csv', index=False)
