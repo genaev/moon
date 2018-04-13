@@ -8,7 +8,6 @@ import os.path
 
 # set the delay between requests
 wait_time = 1
-#data_file = 'data.csv'
 out_dir = "data"
 
 def to_csv(data,csv_file):
