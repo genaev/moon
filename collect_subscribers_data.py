@@ -8,7 +8,6 @@ import os.path
 
 # set the delay between requests
 wait_time = 1
-#data_file = 'data.csv'
 out_dir = "data"
 
 def to_csv(data,csv_file):
@@ -22,7 +21,7 @@ def update_data (cur_data,new_data):
     cur_data.set_index('date', inplace=True)
     new_data.set_index('date', inplace=True)
     data = pd.concat([cur_data, new_data]).reset_index().sort_values(by=['date', 'subscriber_count']).drop_duplicates(
-        subset=['date'], keep='first').reset_index(drop=True)
+        subset=['date'], keep='last').reset_index(drop=True)
     return data
 
 def process_data(new_data,out_file,rewrite):
@@ -58,7 +57,7 @@ def download_by_coin(coin,out_dir,rewrite):
         process_data(new_data,tw_file,rewrite)
 
 # download data for several coin
-#download_by_coin("bitcoin-diamond",out_dir,False)
+#download_by_coin("eccoin",out_dir,False)
 #exit(0)
 
 # download data for all coins

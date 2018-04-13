@@ -27,7 +27,7 @@ class TwitterData():
             print("*** WARNING: URL " + self.url + " did not open successfully. ***")
         return html
 
-    def retrieve_data(self, html):
+    def retrieve_data(self, html, data_type):
         """
         Find the part of the html with the total number of subscribers over time.
 
@@ -47,7 +47,7 @@ class TwitterData():
 
 
         #search_string = "\"Date,Monthly Follower\\n\" + "
-        search_string = "\"Date,Total Follower\\n\" + "
+        search_string = "\"Date,"+data_type+"\\n\" + "
 
         # In the html, the subscriber info is an array of Javascript objects (or a list
         # of python dicts), but extracted here as a single long string.
@@ -60,7 +60,7 @@ class TwitterData():
         else:
             return None
 
-    def convert_text_to_dataframe(self, data_list):
+    def convert_text_to_dataframe(self, data_list, col_name):
         """
         Convert the string of subscriber data to a pandas dataframe (via JSON).
 
@@ -74,7 +74,7 @@ class TwitterData():
         data_list = data_list.replace("\\n\" +", "}\n")
         data_list = data_list.replace("\\n\"", "}\n")
         data_list = data_list.replace('"', '{"date": "')
-        data_list = data_list.replace(',', '", "subscriber_count": ')
+        data_list = data_list.replace(',', '", "'+col_name+'": ')
         data_list = data_list.replace('}', '},')
         data_list = data_list[:-2]+"\n"
         data_list = "[\n"+data_list+"]\n";
@@ -83,7 +83,7 @@ class TwitterData():
         try:
             subscriber_data = loads(data_list)
         except ValueError:
-            print("*** WARNING: No data retrieved for " + self.url + " ***")
+            print("*** Can't parse data for " + self.url + " data_type= " + col_name + " ***")
             return None
 
         # convert to dataframe and parse dates from string to 'date'
@@ -103,12 +103,19 @@ class TwitterData():
         text = self.get_script_text()
         # find the part that corresponds to total subscribers to the subreddit
         if text is not None:
-            data_list = self.retrieve_data(text)
-            # convert to a pandas dataframe
-            if data_list is not None:
-                # get monthly subscriber vals for 2016
-                df = self.convert_text_to_dataframe(data_list)
-                if df is not None:
-                    return df
-                return None
+            d = {
+                "Total Follower": "subscriber_count",
+                "Daily Follower": "subscriber_daily",
+            }
+            df = pd.DataFrame()
+            for data_type,col_name in d.items():
+                data_list = self.retrieve_data(text, data_type)
+                if data_list is not None:
+                    if df.empty is True:
+                        df = self.convert_text_to_dataframe(data_list, col_name)
+                    else:
+                        df_new = self.convert_text_to_dataframe(data_list, col_name)
+                        if df_new is not None:
+                            df = df.set_index('date').join(df_new.set_index('date'))
+            return df.reset_index() if df.empty is not True else None
         return None
