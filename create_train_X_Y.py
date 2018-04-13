@@ -69,6 +69,7 @@ def make_df(coin):
             has_reddit = 1
         else:
             market['reddit'] = 0
+            market['reddit_daily'] = 0
             has_reddit = 0
 
         if os.path.isfile(twitter_f):
@@ -79,8 +80,10 @@ def make_df(coin):
             has_twitter = 1
         else:
             market['twitter'] = 0
+            market['twitter_daily'] = 0
             has_twitter = 0
-
+        
+        coindar = pd.DataFrame()
         if os.path.isfile(coindar_f):
             coindar = pd.read_csv(coindar_f, index_col='Unnamed: 0')
             coindar = coindar.rename(index=str, columns={'start_date': 'date'})
@@ -225,8 +228,11 @@ def norm(df, params):
             print(*columns_list, 'not in df')
     return norm_df
 
-for coin in ['bitcoin']:
-    make_x_y(*make_df(coin))
+#for coin in ['bitcoin','ethereum']:
+for coin in cur_names:
+    print(coin)
+    if os.path.isfile(data_dir + '/' + coin + '.market.csv'):    
+        make_x_y(*make_df(coin))
 
 X = pd.concat(X, ignore_index=True)
 Y = pd.DataFrame(Y)

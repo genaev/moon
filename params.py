@@ -1,7 +1,7 @@
 from CoinMarketCap.CoinsList import CoinsList
 import argparse
 
-data_dir = 'data_test'
+data_dir = 'data'
 
 cur_names = CoinsList().get['coin_id'].tolist()
 
@@ -19,6 +19,8 @@ skip_colums = ['marketcap_altcoin_index_market_cap_by_available_supply',
                'd_index_monero',
                'd_index_nem',
                'd_index_neo',
+               'reddit',
+               'reddit_daily',
 ]
 
 norm_block_params = {('open', 'high', 'low', 'close'): 'ss',
@@ -40,7 +42,10 @@ norm_block_params = {('open', 'high', 'low', 'close'): 'ss',
                      'd_index_others': '',
                      'd_index_ripple': '',
                      'reddit': '',
-                     'twitter': ''}
+                     'reddit_daily': '',
+                     'twitter': '',
+                     'twitter_daily': '',
+                     }
 
 norm_all_params = {('open', 'high', 'low', 'close'): 'log',
                    'volume': 'log',
@@ -76,7 +81,9 @@ interpolate_params ={'date': 0,
                      'd_index_others': 1,
                      'd_index_ripple': 1,
                      'reddit': 20,
+                     'reddit_daily': 20,
                      'has_reddit': 0,
                      'twitter': 20,
+                     'twitter_daily': 20,
                      'has_twitter': 0}
 #
