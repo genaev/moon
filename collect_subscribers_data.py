@@ -9,7 +9,7 @@ import os.path
 # set the delay between requests
 wait_time = 1
 #data_file = 'data.csv'
-out_dir = "data_test"
+out_dir = "data"
 
 def to_csv(data,csv_file):
     df = pd.DataFrame(data)
@@ -58,8 +58,8 @@ def download_by_coin(coin,out_dir,rewrite):
         process_data(new_data,tw_file,rewrite)
 
 # download data for several coin
-download_by_coin("eccoin",out_dir,False)
-exit(0)
+#download_by_coin("eccoin",out_dir,False)
+#exit(0)
 
 # download data for all coins
 i = 0
