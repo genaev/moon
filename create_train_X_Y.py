@@ -64,7 +64,7 @@ def make_df(coin):
         if os.path.isfile(reddit_f):
             reddit = pd.read_csv(reddit_f, index_col='Unnamed: 0')
             reddit.date = pd.to_datetime(reddit.date).dt.date
-            reddit = reddit.rename(index=str, columns={'subscriber_count': 'reddit'}).set_index('date')
+            reddit = reddit.rename(index=str, columns={'subscriber_count': 'reddit', 'subscriber_daily': 'reddit_daily'}).set_index('date')
             market = market.join(reddit, on='date')
             has_reddit = 1
         else:
@@ -74,7 +74,7 @@ def make_df(coin):
         if os.path.isfile(twitter_f):
             twitter = pd.read_csv(twitter_f, index_col='Unnamed: 0')
             twitter.date = pd.to_datetime(twitter.date).dt.date
-            twitter = twitter.rename(index=str, columns={'subscriber_count': 'twitter'}).set_index('date')
+            twitter = twitter.rename(index=str, columns={'subscriber_count': 'twitter', 'subscriber_daily': 'twitter_daily'}).set_index('date')
             market = market.join(twitter, on='date')
             has_twitter = 1
         else:
