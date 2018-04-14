@@ -122,7 +122,7 @@ def make_x_y(market, coindar, has_twitter, has_reddit):
     for i in range(ids_count + 1):
         end = start + l
         table_part = norm_market[start + 1:end + 1]
-        table_part = table_part.assign(id=coin + str(ids_count - i)).assign(date_=range(l))
+        table_part = table_part.assign(id=coin + str(ids_count - i)).assign(date=range(l))
 
         if not table_part.isnull().any().any():
 
