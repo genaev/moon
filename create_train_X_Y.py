@@ -92,6 +92,9 @@ def make_df(coin):
 
         return market, coindar, has_twitter, has_reddit
 
+    else:
+        return False
+
 
 def make_x_y(market, coindar, has_twitter, has_reddit):
     global clusters
@@ -115,17 +118,18 @@ def make_x_y(market, coindar, has_twitter, has_reddit):
 
     ids_count = (len(market) - n - r - l) // w
     start = len(market) - n - l - w * ids_count - 1
+
     for i in range(ids_count + 1):
         end = start + l
-        table_part = norm_market[start+1:end+1]
-        table_part = table_part[::-1]
-        table_part = table_part.assign(id=coin + str(ids_count - i)).assign(date=range(l))
+        table_part = norm_market[start + 1:end + 1]
+        table_part = table_part.assign(id=coin + str(ids_count - i)).assign(date_=range(l))
 
         if not table_part.isnull().any().any():
 
             X.append(table_part)
 
             y = market.low[end: end + n].max() / np.mean([market.high.iloc[end], market.low.iloc[end]])
+            uny = market.high[end: end + n].min() / np.mean([market.high.iloc[end], market.low.iloc[end]])
             y_elem = {'id': coin + str(ids_count - i),
                       'y': y,
                       'start': market.date.iloc[start],
@@ -161,20 +165,14 @@ def make_x_y(market, coindar, has_twitter, has_reddit):
             for i in pumps:
                 if y_elem['y'] > i:
                     pumps_count[i] += 1
-                    y_elem['pump' + str(i)] = pumps_count[i]
-                    y_elem['pump_p' + str(i)] = pumps_count[i] / ids_count
-                else:
-                    y_elem['pump' + str(i)] = pumps_count[i]
-                    y_elem['pump_p' + str(i)] = pumps_count[i] / ids_count
+                y_elem['pump' + str(i)] = pumps_count[i]
+                y_elem['pump_p' + str(i)] = pumps_count[i] / (ids_count + 1)
 
             for i in unpumps:
-                if y_elem['y'] < i:
+                if uny < i:
                     unpumps_count[i] += 1
-                    y_elem['unpump' + str(i)] = unpumps_count[i]
-                    y_elem['unpump_p' + str(i)] = unpumps_count[i] / ids_count
-                else:
-                    y_elem['unpump' + str(i)] = unpumps_count[i]
-                    y_elem['unpump_p' + str(i)] = unpumps_count[i] / ids_count
+                y_elem['unpump' + str(i)] = unpumps_count[i]
+                y_elem['unpump_p' + str(i)] = unpumps_count[i] / (ids_count + 1)
 
             months = set(market.date[end: end + n].map(lambda x: x.month))
             for month in range(1,13):
@@ -184,8 +182,6 @@ def make_x_y(market, coindar, has_twitter, has_reddit):
                     y_elem['month' + str(month)] = 0
 
             Y.append(y_elem)
-
-
 
         start += w
 
@@ -228,11 +224,11 @@ def norm(df, params):
             print(*columns_list, 'not in df')
     return norm_df
 
-#for coin in ['bitcoin','ethereum']:
 for coin in cur_names:
-    print(coin)
-    if os.path.isfile(data_dir + '/' + coin + '.market.csv'):    
-        make_x_y(*make_df(coin))
+    dfs = make_df(coin)
+    if dfs:
+        print(coin)
+        make_x_y(*dfs)
 
 X = pd.concat(X, ignore_index=True)
 Y = pd.DataFrame(Y)

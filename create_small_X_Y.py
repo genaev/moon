@@ -122,8 +122,7 @@ def make_x_y(market, coindar, has_twitter, has_reddit):
     start = len(market) - n - l - w * ids_count - 1
     for i in range(ids_count + 1):
         end = start + l
-        table_part = norm_market[start+1:end+1]
-        table_part = table_part[::-1]
+        table_part = norm_market[start + 1:end + 1]
         table_part = table_part.assign(id=coin + str(ids_count - i)).assign(date=range(l))
 
         if has_reddit == 1 and table_part.reddit.isnull().any():
@@ -238,11 +237,10 @@ def norm(df, params):
 
 
 for coin in cur_names:
-# for coin in ['bitcoin']:#["sagacoin","wanchain","bitcoin","eccoin","energycoin","ethereum","ixcoin","jewels","ripple"]:
     dfs = make_df(coin)
 
     if dfs:
-        print(coin , end='')
+        print(coin, end='')
         make_x_y(*dfs)
 
 X = pd.concat(X, ignore_index=True)

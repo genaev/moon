@@ -1,7 +1,7 @@
 from CoinMarketCap.CoinsList import CoinsList
 import argparse
 
-data_dir = 'data'
+data_dir = 'data_test'
 
 cur_names = CoinsList().get['coin_id'].tolist()
 
