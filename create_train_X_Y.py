@@ -82,7 +82,7 @@ def make_df(coin):
             market['twitter'] = 0
             market['twitter_daily'] = 0
             has_twitter = 0
-        
+
         coindar = pd.DataFrame()
         if os.path.isfile(coindar_f):
             coindar = pd.read_csv(coindar_f, index_col='Unnamed: 0')
@@ -189,7 +189,7 @@ def make_x_y(market, coindar, has_twitter, has_reddit):
 def nan_filling(df):
     for i in interpolate_params:
         if i in df:
-            df[i] = df[i].interpolate(limit=interpolate_params[i])
+            df[i] = df[i].interpolate(limit=interpolate_params[i], limit_direction='both')
 
 
 def f_norm(df, norm_type):
@@ -223,6 +223,7 @@ def norm(df, params):
         else:
             print(*columns_list, 'not in df')
     return norm_df
+
 
 for coin in cur_names:
     dfs = make_df(coin)

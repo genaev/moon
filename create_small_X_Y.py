@@ -67,30 +67,31 @@ def make_df(coin):
         if os.path.isfile(reddit_f):
             reddit = pd.read_csv(reddit_f, index_col='Unnamed: 0')
             reddit.date = pd.to_datetime(reddit.date).dt.date
-            reddit = reddit.rename(index=str, columns={'subscriber_count': 'reddit'}).set_index('date')
+            reddit = reddit.rename(index=str, columns={'subscriber_count': 'reddit', 'subscriber_daily': 'reddit_daily'}).set_index('date')
             market = market.join(reddit, on='date')
             has_reddit = 1
         else:
             market['reddit'] = 0
+            market['reddit_daily'] = 0
             has_reddit = 0
 
         if os.path.isfile(twitter_f):
             twitter = pd.read_csv(twitter_f, index_col='Unnamed: 0')
             twitter.date = pd.to_datetime(twitter.date).dt.date
-            twitter = twitter.rename(index=str, columns={'subscriber_count': 'twitter'}).set_index('date')
+            twitter = twitter.rename(index=str, columns={'subscriber_count': 'twitter', 'subscriber_daily': 'twitter_daily'}).set_index('date')
             market = market.join(twitter, on='date')
             has_twitter = 1
         else:
             market['twitter'] = 0
+            market['twitter_daily'] = 0
             has_twitter = 0
 
+        coindar = pd.DataFrame()
         if os.path.isfile(coindar_f):
             coindar = pd.read_csv(coindar_f, index_col='Unnamed: 0')
             coindar = coindar.rename(index=str, columns={'start_date': 'date'})
             coindar.date = pd.to_datetime(coindar.date).dt.date
             coindar = coindar.set_index('date').cluster.sort_index()
-        else:
-            coindar = pd.DataFrame()
 
         return market, coindar, has_twitter, has_reddit
 
@@ -101,6 +102,7 @@ def make_df(coin):
 def make_x_y(market, coindar, has_twitter, has_reddit):
     global clusters
     pumps_count = {i: 0 for i in pumps}
+    unpumps_count = {i: 0 for i in unpumps}
 
     if not coindar.empty:
         new_clusters = set(coindar).difference(clusters)
@@ -112,7 +114,6 @@ def make_x_y(market, coindar, has_twitter, has_reddit):
 
     market = market.drop_duplicates(subset='date', keep='first')
     nan_filling(market)
-
     if norm_all:
         norm_market = norm(market, norm_all_params)
     else:
@@ -120,6 +121,7 @@ def make_x_y(market, coindar, has_twitter, has_reddit):
 
     ids_count = (len(market) - n - r - l) // w
     start = len(market) - n - l - w * ids_count - 1
+
     for i in range(ids_count + 1):
         end = start + l
         table_part = norm_market[start + 1:end + 1]
@@ -143,8 +145,10 @@ def make_x_y(market, coindar, has_twitter, has_reddit):
 
             if end + pred < len(market):
                 y = market.low[end: end + pred].max() / np.mean([market.high.iloc[end], market.low.iloc[end]])
+                uny = market.high[end: end + n].min() / np.mean([market.high.iloc[end], market.low.iloc[end]])
             else:
                 y = np.nan
+                uny = np.nan
 
             y_elem = {'id': coin + str(ids_count - i),
                       'y': y,
@@ -181,11 +185,22 @@ def make_x_y(market, coindar, has_twitter, has_reddit):
             for i in pumps:
                 if y_elem['y'] > i:
                     pumps_count[i] += 1
-                    y_elem['pump' + str(i)] = pumps_count[i]
-                    y_elem['pump_p' + str(i)] = pumps_count[i] / (ids_count + 1)
+                y_elem['pump' + str(i)] = pumps_count[i]
+                y_elem['pump_p' + str(i)] = pumps_count[i] / (ids_count + 1)
+
+            for i in unpumps:
+                if uny < i:
+                    unpumps_count[i] += 1
+                y_elem['unpump' + str(i)] = unpumps_count[i]
+                y_elem['unpump_p' + str(i)] = unpumps_count[i] / (ids_count + 1)
+
+            months = set(market.date[end: end + n].map(lambda x: x.month))
+            for month in range(1, 13):
+                if month in months:
+                    y_elem['month' + str(month)] = 1
                 else:
-                    y_elem['pump' + str(i)] = pumps_count[i]
-                    y_elem['pump_p' + str(i)] = pumps_count[i] / (ids_count + 1)
+                    y_elem['month' + str(month)] = 0
+
         start += w
 
     try:
@@ -246,6 +261,5 @@ for coin in cur_names:
 X = pd.concat(X, ignore_index=True)
 Y = pd.DataFrame(Y).drop('y', axis=1)
 p = '_N'+str(pred)+'L'+str(l)+'W'+str(w)
-Y.to_csv('small_new_Y'+p+'.csv', index=False)
-X.drop(skip_colums,axis=1).to_csv('small_new_X'+p+'.csv', index=False)
-#
+Y.to_csv('small_Y'+p+'.csv', index=False)
+X.drop(skip_colums,axis=1).to_csv('small_X'+p+'.csv', index=False)
