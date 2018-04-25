@@ -86,4 +86,3 @@ interpolate_params ={'date': 0,
                      'twitter': 20,
                      'twitter_daily': 20,
                      'has_twitter': 0}
-#

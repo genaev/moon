@@ -21,13 +21,14 @@ l = args.L if args.L else 70
 w = args.W if args.W else 5
 # не будем учитывать данные за первые R дней что бы избежать выбросов
 r = 30
+back = 0
 
 X = []
 Y = []
 clusters = set()
 new_clusters = set()
 pred = n
-n = 9
+n = back
 
 
 def make_df(coin):
@@ -142,6 +143,7 @@ def make_x_y(market, coindar, has_twitter, has_reddit):
         if not table_part.isnull().any().any():
 
             x_elem = table_part
+            x_elem['end_date'] = market.date.iloc[end]
 
             if end + pred < len(market):
                 y = market.low[end: end + pred].max() / np.mean([market.high.iloc[end], market.low.iloc[end]])
@@ -260,6 +262,12 @@ for coin in cur_names:
 
 X = pd.concat(X, ignore_index=True)
 Y = pd.DataFrame(Y).drop('y', axis=1)
+
+true_date = Y.end.value_counts().index[0]
+
+Y = Y[Y.end == true_date]
+X = X[X.end_date == true_date].drop(columns=['end_date'])
+
 p = '_N'+str(pred)+'L'+str(l)+'W'+str(w)
 Y.to_csv('small_Y'+p+'.csv', index=False)
 X.drop(skip_colums,axis=1).to_csv('small_X'+p+'.csv', index=False)

@@ -225,7 +225,7 @@ def norm(df, params):
     return norm_df
 
 
-for coin in cur_names:
+for coin in ['eccoin', 'innova']:#cur_names:
     dfs = make_df(coin)
     if dfs:
         print(coin)
