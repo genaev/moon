@@ -57,14 +57,19 @@ def download_by_coin(coin,out_dir,rewrite):
         process_data(new_data,tw_file,rewrite)
 
 # download data for several coin
-#download_by_coin("eccoin",out_dir,False)
+#download_by_coin("macron",out_dir,True)
+#download_by_coin("ripple",out_dir,False)
 #exit(0)
 
 # download data for all coins
 i = 0
+st = False
 #for coin in pd.read_csv(data_file).name:
 for coin in CoinsList().get['coin_id'].tolist():
-    i+=1
-    download_by_coin(coin,out_dir,False)
-    # Pause before next request, to avoid DoS'ing the website
-    sleep(wait_time)
+    if (coin == "macron"):
+        st = True
+    if st is True:
+        i+=1
+        download_by_coin(coin,out_dir,False)
+        # Pause before next request, to avoid DoS'ing the website
+        sleep(wait_time)
