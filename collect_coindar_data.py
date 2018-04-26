@@ -60,7 +60,7 @@ result = result.drop(result.columns[[0]],axis=1)
 grouped = result.groupby('coin_id')
 #print("KMeans results:\n",result.cluster.value_counts(normalize=True))
 result.cluster = result.cluster.map({k: v for k, v in zip(result.cluster.value_counts(normalize=True).index, range(9))})
-#print("KMeans results:\n",result.cluster.value_counts(normalize=True))
+print("KMeans results:\n",result.cluster.value_counts(normalize=True))
 print(len(grouped)," coins were found in the CoinDar events")
 for name, group in grouped:
     group = group.reset_index(drop=True)
