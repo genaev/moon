@@ -42,6 +42,7 @@ def make_df(coin):
         market['market cap'] = pd.to_numeric(market['market cap'], errors='coerce')
         market.date = pd.to_datetime(market.date).dt.date
         market = market.sort_values('date')
+
     if len(market) >= r + l:
         if os.path.isfile(cap_index_f):
             cap_index = pd.read_csv(cap_index_f, index_col='Unnamed: 0')
@@ -225,7 +226,7 @@ def norm(df, params):
     return norm_df
 
 
-for coin in ['masari']:#cur_names:
+for coin in cur_names:
     dfs = make_df(coin)
     if dfs:
         print(coin)
