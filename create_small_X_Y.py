@@ -16,9 +16,9 @@ args = parser.parse_args()
 # будем делать прогноз на N дней
 n = args.N if args.N else 30
 # обучаться будем на выборке длины L
-l = args.L if args.L else 70
+l = args.L if args.L else 90
 # смещение окна будет W
-w = args.W if args.W else 5
+w = args.W if args.W else 20
 # не будем учитывать данные за первые R дней что бы избежать выбросов
 r = 30
 back = 0
@@ -69,6 +69,8 @@ def make_df(coin):
             reddit = pd.read_csv(reddit_f, index_col='Unnamed: 0')
             reddit.date = pd.to_datetime(reddit.date).dt.date
             reddit = reddit.rename(index=str, columns={'subscriber_count': 'reddit', 'subscriber_daily': 'reddit_daily'}).set_index('date')
+            if 'reddit_daily' not in reddit:
+                reddit['reddit_daily'] = np.nan
             market = market.join(reddit, on='date')
             has_reddit = 1
         else:
@@ -80,6 +82,8 @@ def make_df(coin):
             twitter = pd.read_csv(twitter_f, index_col='Unnamed: 0')
             twitter.date = pd.to_datetime(twitter.date).dt.date
             twitter = twitter.rename(index=str, columns={'subscriber_count': 'twitter', 'subscriber_daily': 'twitter_daily'}).set_index('date')
+            if 'twitter_daily' not in twitter:
+                twitter['twitter_daily'] = np.nan
             market = market.join(twitter, on='date')
             has_twitter = 1
         else:
@@ -128,15 +132,15 @@ def make_x_y(market, coindar, has_twitter, has_reddit):
         table_part = norm_market[start + 1:end + 1]
         table_part = table_part.assign(id=coin + str(ids_count - i)).assign(date=range(l))
 
-        if has_reddit == 1 and table_part.reddit.isnull().any():
+        if has_reddit == 1 and table_part[['reddit', 'reddit_daily']].isnull().any().any():
             local_has_reddit = 0
-            table_part.reddit = 0
+            table_part[['reddit', 'reddit_daily']] = 0
         else:
             local_has_reddit = 1
 
-        if has_twitter == 1 and table_part.twitter.isnull().any():
+        if has_twitter == 1 and table_part[['twitter', 'twitter_daily']].isnull().any().any():
             local_has_twitter = 0
-            table_part.twitter = 0
+            table_part[['twitter', 'twitter_daily']]
         else:
             local_has_twitter = 1
 
@@ -264,6 +268,7 @@ X = pd.concat(X, ignore_index=True)
 Y = pd.DataFrame(Y).drop('y', axis=1)
 
 true_date = Y.end.value_counts().index[0]
+print(Y.end.value_counts())
 
 Y = Y[Y.end == true_date]
 X = X[X.end_date == true_date].drop(columns=['end_date'])
