@@ -15,7 +15,7 @@ args = parser.parse_args()
 # будем делать прогноз на N дней
 n = args.N if args.N else 30
 # обучаться будем на выборке длины L
-l = args.L if args.L else 70
+l = args.L if args.L else 90
 # смещение окна будет W
 w = args.W if args.W else 5
 # не будем учитывать данные за первые R дней что бы избежать выбросов
