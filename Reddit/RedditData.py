@@ -74,7 +74,8 @@ class RedditData():
 
         # convert to dataframe and parse dates from string to 'date'
         df = pd.DataFrame(subscriber_data)
-        df['date'] = pd.to_datetime(df['date'], format="%Y-%m-%d")
+        if df.empty is not True:
+            df['date'] = pd.to_datetime(df['date'], format="%Y-%m-%d")
 
         return df
 
@@ -101,6 +102,6 @@ class RedditData():
                         df = self.convert_text_to_dataframe(data_list, col_name)
                     else:
                         df_new = self.convert_text_to_dataframe(data_list, col_name)
-                        if df_new is not None:
+                        if df_new is not None and df_new.empty is not True:
                             df = df.set_index('date').join(df_new.set_index('date'))
-            return df.rename(index=str, columns={"XXX": "subscriber_daily"}).reset_index() if df.empty is not True else None
+            return df.rename(index=str, columns={"XXX": "subscriber_daily"}).reset_index() if df.empty is not True and len(df)>30 else None
