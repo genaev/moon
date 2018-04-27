@@ -47,7 +47,7 @@ def make_df(coin):
         market.date = pd.to_datetime(market.date).dt.date
         market = market.sort_values('date')
 
-    if len(market) >= r + l:
+    if os.path.isfile(market_f) and market is not None and market.empty is not True and len(market) >= r + l:
         if os.path.isfile(cap_index_f):
             cap_index = pd.read_csv(cap_index_f, index_col='Unnamed: 0')
             cap_index.date = pd.to_datetime(cap_index.date).dt.date
@@ -259,6 +259,7 @@ def norm(df, params):
 
 
 for coin in cur_names:
+    #print ("process",coin)
     dfs = make_df(coin)
 
     if dfs:
