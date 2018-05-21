@@ -409,3 +409,26 @@ synergy	0.5016843	https://coinmarketcap.com/ru/currencies/synergy/
 bitshares	0.5003465	https://coinmarketcap.com/ru/currencies/bitshares/
 ponzicoin	0.5002826	https://coinmarketcap.com/ru/currencies/ponzicoin/
 europecoin	0.50005645	https://coinmarketcap.com/ru/currencies/europecoin/
+
+2018-05-16
+litecred	0.50269586	https://coinmarketcap.com/ru/currencies/litecred/
+2018-05-17
+synergy	0.5043055	https://coinmarketcap.com/ru/currencies/synergy/
+uniform-fiscal-object	0.5017657	https://coinmarketcap.com/ru/currencies/uniform-fiscal-object/
+gulden	0.50035286	https://coinmarketcap.com/ru/currencies/gulden/
+bitzeny	0.50032765	https://coinmarketcap.com/ru/currencies/bitzeny/
+centurion	0.50001043	https://coinmarketcap.com/ru/currencies/centurion/
+2018-05-18
+gulden	0.5060999	https://coinmarketcap.com/ru/currencies/gulden/
+bata	0.50052637	https://coinmarketcap.com/ru/currencies/bata/
+auroracoin	0.50004256	https://coinmarketcap.com/ru/currencies/auroracoin/
+revolutionvr	0.5000063	https://coinmarketcap.com/ru/currencies/revolutionvr/
+2018-05-19
+crowdcoin	0.5098936	https://coinmarketcap.com/ru/currencies/crowdcoin/
+virtacoin	0.5017462	https://coinmarketcap.com/ru/currencies/virtacoin/
+gulden	0.5017343	https://coinmarketcap.com/ru/currencies/gulden/
+bata	0.5000492	https://coinmarketcap.com/ru/currencies/bata/
+2018-05-19
+crowdcoin	0.5098936	https://coinmarketcap.com/ru/currencies/crowdcoin/
+virtacoin	0.5017462	https://coinmarketcap.com/ru/currencies/virtacoin/
+bata	0.5000492	https://coinmarketcap.com/ru/currencies/bata/
