@@ -57,7 +57,8 @@ def download_by_coin(coin,out_dir,rewrite):
         process_data(new_data,tw_file,rewrite)
 
 # download data for several coin
-#download_by_coin("eccoin",out_dir,False)
+#download_by_coin("litecoin-ultra",out_dir,True)
+#download_by_coin("ripple",out_dir,False)
 #exit(0)
 
 # download data for all coins

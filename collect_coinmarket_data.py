@@ -36,7 +36,7 @@ for coin in CoinsList().get['coin_id'].tolist():
     now = datetime.datetime.now()
     date = str(now.year) + str(now.month) + str(now.day)
     i += 1
-    print (i, coin)
+    print(i, coin)
     main('https://coinmarketcap.com/currencies/' + coin + '/historical-data/?start=20100101&end=' + date,
          coin,
          out_dir + '/' + coin + '.market.csv')

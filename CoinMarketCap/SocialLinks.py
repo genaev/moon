@@ -30,7 +30,7 @@ class SocialLinks():
         if start != -1:
             end = html.find(".embed", start)
             if end != -1:
-                self.links['reddit'] = html[start + len(str):end]
+                self.links['reddit'] = html[start + len(str):end].rstrip()
         # Try to find twitter link, for example
         #"twitter-timeline" href="https://twitter.com/ethereumproject"
         str = '"twitter-timeline" href="https://twitter.com/'
@@ -38,7 +38,7 @@ class SocialLinks():
         if start != -1:
             end = html.find('"', start+len(str))
             if end != -1:
-                self.links['twitter'] = html[start+len(str):end]
+                self.links['twitter'] = html[start+len(str):end].rstrip()
 
     @property
     def twitter(self):
