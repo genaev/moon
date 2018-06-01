@@ -35,6 +35,7 @@ def make_df(coin):
     reddit_f = data_dir + '/' + coin + '.reddit.csv'
     twitter_f = data_dir + '/' + coin + '.twitter.csv'
     coindar_f = data_dir + '/' + coin + '.coindar.csv'
+    coinmarketcal_f = data_dir + '/' + coin + '.coinmarketcal.csv'
 
     if os.path.isfile(market_f):
         market = pd.read_csv(market_f, index_col='Unnamed: 0').rename(str.lower, axis='columns')
@@ -91,13 +92,19 @@ def make_df(coin):
             coindar.date = pd.to_datetime(coindar.date).dt.date
             coindar = coindar.set_index('date').cluster.sort_index()
 
-        return market, coindar, has_twitter, has_reddit
+        coinmarketcal = pd.DataFrame()
+        if os.path.isfile(coinmarketcal_f):
+            coinmarketcal = pd.read_csv(coinmarketcal_f, index_col='Unnamed: 0')
+            coinmarketcal.date = pd.to_datetime(coinmarketcal.date).dt.date
+            coinmarketcal = coinmarketcal.set_index('date').categories.sort_index()
+
+        return market, coindar, has_twitter, has_reddit, coinmarketcal
 
     else:
         return False
 
 
-def make_x_y(market, coindar, has_twitter, has_reddit):
+def make_x_y(market, coindar, has_twitter, has_reddit, coinmarketcal):
     global clusters
     pumps_count = {i: 0 for i in pumps}
     unpumps_count = {i: 0 for i in unpumps}
@@ -144,7 +151,7 @@ def make_x_y(market, coindar, has_twitter, has_reddit):
                       'less_100': int(1 < market.low[end] < 100),
                       'more_100': int(100 < market.low[end])
                       }
-
+###############################################
             if not coindar.empty:
                 future_events = coindar[y_elem['end']:y_elem['predicted']].value_counts()
                 past_events = coindar[y_elem['start']:y_elem['end']].value_counts()
@@ -162,6 +169,18 @@ def make_x_y(market, coindar, has_twitter, has_reddit):
                 for cluster in clusters:
                     y_elem['future_events' + str(cluster)] = 0
                     y_elem['past_events' + str(cluster)] = 0
+
+            for category in range(1, 16):
+                y_elem['future_coinmarketcal' + str(category)] = 0
+                y_elem['past_coinmarketcal' + str(category)] = 0
+            if not coinmarketcal.empty:
+                future_events = coinmarketcal[y_elem['end']:y_elem['predicted']].value_counts()
+                past_events = coinmarketcal[y_elem['start']:y_elem['end']].value_counts()
+                for category, count in future_events.iteritems():
+                    y_elem['future_coinmarketcal' + str(category)] = count
+                for category, count in past_events.iteritems():
+                    y_elem['pust_coinmarketcal' + str(category)] = count
+
 
             for i in pumps:
                 if y_elem['y'] > i:

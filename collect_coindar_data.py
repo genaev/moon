@@ -7,6 +7,7 @@ from sklearn.cluster import KMeans
 import os.path
 from CoinMarketCap.CoinsList import CoinsList
 
+
 def tokenize_and_stem(text):
     stemmer = SnowballStemmer("english")
     # first tokenize by sentence, then by word to ensure that punctuation is caught as it's own token
