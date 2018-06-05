@@ -179,7 +179,7 @@ def make_x_y(market, coindar, has_twitter, has_reddit, coinmarketcal):
                 for category, count in future_events.iteritems():
                     y_elem['future_coinmarketcal' + str(category)] = count
                 for category, count in past_events.iteritems():
-                    y_elem['pust_coinmarketcal' + str(category)] = count
+                    y_elem['past_coinmarketcal' + str(category)] = count
 
 
             for i in pumps:
