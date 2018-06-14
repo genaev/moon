@@ -4,7 +4,7 @@ from Twitter.TwitterData import TwitterData
 from CoinMarketCap.SocialLinks import SocialLinks
 from CoinMarketCap.CoinsList import CoinsList
 from time import sleep
-import os.path
+import os
 
 # set the delay between requests
 wait_time = 1
@@ -28,7 +28,7 @@ def process_data(new_data,out_file,rewrite):
     if (new_data is None or new_data.empty is True):
         print ("\tno new data for",out_file)
         pass  # To do nothing
-    elif (os.path.isfile(out_file) is True and rewrite is not True):
+    elif (os.path.isfile(out_file) is True and os.stat(out_file).st_size != 0 and rewrite is not True):
         cur_data = pd.read_csv(out_file, index_col="Unnamed: 0")
         data = update_data(cur_data, new_data)
         to_csv(data, out_file)
